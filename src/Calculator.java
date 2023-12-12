@@ -1,46 +1,69 @@
-import java.text.DecimalFormat;
 import java.util.Scanner;
 
 public class Calculator {
-    public static double calcul(int userInput) throws CalculatorException {
 
+    private int year = 0;
+    private int startIndex = 0;
+    private final double[] MOEX_RATE = Constants.MOEX_RATE;
+    private final double[] INFLATION_RATE = Constants.INFLATION_RATE;
+
+    private final YearCheck checkYear = new YearCheck();
+
+    public void readYear() {
+
+        Scanner inputYear = new Scanner(System.in);
+        this.year = inputYear.nextInt();
+
+        checkYear.validateInputYear(this.year);
+    }
+
+    public double maxPercentWithdraw() {
+        this.readYear();
+        int minYear = 2002;
+        this.startIndex = this.year - minYear;
         double capital = 10000;
-        double capend;
-        double maxpercent = 100.0;
-        double oppercent = 0.005;
-        double percent;
-        int formyear = 2001;
-        int hundredpercent = 1;
-        int onehundred = 100;
-        int zeroresult = 0;
-        boolean isRight = false;
 
-        for (percent = oppercent; percent < maxpercent; percent += oppercent) {
-            double start = capital * percent;
-            double nextyearcap = capital - start;
+        double minPercent = 0.5;
 
-            for (int i = userInput - formyear; i < Constants.MOEX_RATE.length; i++) {
-                double rashod = start * (Constants.INFLATION_RATE[i - hundredpercent] / onehundred) + start;
-                double dohod = nextyearcap * (hundredpercent + (Constants.MOEX_RATE[i] -
-                        Constants.MOEX_RATE[i - hundredpercent]) / Constants.MOEX_RATE[i - hundredpercent]);
-
-                capend = dohod - rashod;
-                nextyearcap = capend;
-                start = rashod;
-
-                if (capend < zeroresult) {
-                    isRight = true;
-                    break;
-                }
-            }
-            if (isRight) {
-                break;
+        boolean percentCheck = true;
+        double minResult = Double.MAX_VALUE;
+        while (percentCheck) {
+            double result = getLastCapital(minPercent, capital);
+            if (result < minResult) {
+                minResult = result;
+                minPercent += 0.5;
+            } else {
+                percentCheck = false;
             }
         }
-        double number = percent;
-        DecimalFormat answer = new DecimalFormat("#.0");
-        String formatedAnswer = answer.format((number * onehundred));
-        System.out.println(formatedAnswer);
-        return (percent);
+        return minPercent;
     }
+
+    public double getLastCapital(double minPercent, double capital) {
+        double liveCost = capital / 100 * minPercent;
+
+        for (int i = startIndex; i < MOEX_RATE.length; i++) {
+            capital = this.calculateNextYear(capital, liveCost, i);
+            if (capital <= 0) {
+                return Double.MAX_VALUE;
+            }
+            if (i == MOEX_RATE.length - 1) {
+                return capital;
+            }
+
+        }
+        return Double.MAX_VALUE;
+    }
+
+    private double calculateNextYear(double currentCapital, double livecost, int yearIndex) {
+        double thisYearCapital = currentCapital - livecost;
+        if (this.startIndex != yearIndex) {
+            double changedPercents = (MOEX_RATE[yearIndex] * 100) / MOEX_RATE[yearIndex - 1] - 100;
+            thisYearCapital += thisYearCapital / 100 * changedPercents;
+        }
+        thisYearCapital -= thisYearCapital / 100 * INFLATION_RATE[yearIndex];
+        return thisYearCapital;
+
+    }
+
 }
