@@ -1,9 +1,10 @@
 public class YearCheck {
 
     public void validateInputYear(int year) {
-        if (year < 2002 || year > 2021) {
+        final int minYear = 2002;
+        final int maxYear = 2021;
+        if (year < minYear || year > maxYear) {
             throw new RuntimeException("Throw exception...");
         }
     }
 }
-

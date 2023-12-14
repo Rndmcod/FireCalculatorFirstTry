@@ -9,11 +9,10 @@ public class Calculator {
 
     private final YearCheck checkYear = new YearCheck();
 
-    public void readYear() {
 
+    public void readYear() {
         Scanner inputYear = new Scanner(System.in);
         this.year = inputYear.nextInt();
-
         checkYear.validateInputYear(this.year);
     }
 
